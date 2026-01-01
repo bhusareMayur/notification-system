@@ -17,5 +17,11 @@
   "bugs": {
     "url": "https://github.com/bhusareMayur/notification-system/issues"
   },
-  "homepage": "https://github.com/bhusareMayur/notification-system#readme"
+  "homepage": "https://github.com/bhusareMayur/notification-system#readme",
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "mysql2": "^3.16.0",
+    "nodemailer": "^7.0.12"
+  }
 }
