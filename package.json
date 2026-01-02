@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/bhusareMayur/notification-system#readme",
   "dependencies": {
+    "amqplib": "^0.10.9",
     "dotenv": "^17.2.3",
     "express": "^5.2.1",
     "mysql2": "^3.16.0",

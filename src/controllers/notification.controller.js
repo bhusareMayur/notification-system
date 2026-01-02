@@ -1,6 +1,6 @@
 const db = require("../db/mysql");
 const { sendEmailAsync } = require("../services/email.service");
-
+const { publishToQueue } = require("../queue/rabbitmq");
 const createNotification = (req, res) => {
   const { email, name, type, template } = req.body;
 
@@ -14,7 +14,7 @@ const createNotification = (req, res) => {
   db.query(
     query,
     [email, name, type, template, "PENDING"],
-    (err, result) => {
+    async (err, result) => {
       if (err) {
         return res.status(500).json({ message: "DB error" });
       }
@@ -22,8 +22,14 @@ const createNotification = (req, res) => {
       const notificationId = result.insertId;
 
       // NON-BLOCKING email sending
-      setImmediate(() => {
-        sendEmailAsync(notificationId, email, name);
+      // setImmediate(() => {
+      //   sendEmailAsync(notificationId, email, name);
+      // });
+
+        await publishToQueue({
+        notificationId,
+        email,
+        name
       });
 
       return res.status(202).json({
