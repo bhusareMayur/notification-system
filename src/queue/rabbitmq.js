@@ -1,34 +1,28 @@
-const amqp = require("amqplib");
 require("dotenv").config();
-
+const amqp = require("amqplib");
 
 const QUEUE_NAME = "notifications";
-
 let channel;
 
 const connectQueue = async () => {
   if (channel) return channel;
 
-// const connection = await amqp.connect(process.env.RABBITMQ_URL);
-const connection = await amqp.connect(
-  "amqp://admin:admin123@127.0.0.1:5672"
-);
-
-
-
+  const connection = await amqp.connect(process.env.RABBITMQ_URL);
   channel = await connection.createChannel();
   await channel.assertQueue(QUEUE_NAME, { durable: true });
+
+  console.log("API connected to RabbitMQ");
 
   return channel;
 };
 
-const publishToQueue = async (message) => {
+const publishToQueue = async (data) => {
   const ch = await connectQueue();
   ch.sendToQueue(
     QUEUE_NAME,
-    Buffer.from(JSON.stringify(message)),
+    Buffer.from(JSON.stringify(data)),
     { persistent: true }
   );
 };
 
-module.exports = { publishToQueue, QUEUE_NAME };
+module.exports = { publishToQueue };

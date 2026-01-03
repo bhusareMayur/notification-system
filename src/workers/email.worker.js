@@ -7,7 +7,6 @@ const QUEUE_NAME = "notifications";
 
 const startWorker = async () => {
   const connection = await amqp.connect(process.env.RABBITMQ_URL);
-
   const channel = await connection.createChannel();
   await channel.assertQueue(QUEUE_NAME, { durable: true });
 
