@@ -1,7 +1,12 @@
+//src/queue/rabbitmq.js
+
 require("dotenv").config();
 const amqp = require("amqplib");
 
-const QUEUE_NAME = "notifications";
+const MAIN_QUEUE = "notifications";
+const RETRY_QUEUE = "notifications.retry";
+const DLQ = "notifications.dlq";
+
 let channel;
 
 const connectQueue = async () => {
@@ -9,20 +14,49 @@ const connectQueue = async () => {
 
   const connection = await amqp.connect(process.env.RABBITMQ_URL);
   channel = await connection.createChannel();
-  await channel.assertQueue(QUEUE_NAME, { durable: true });
 
-  console.log("API connected to RabbitMQ");
+  // Dead Letter Queue (final failure)
+  await channel.assertQueue(DLQ, {
+    durable: true
+  });
+
+  // Retry Queue (delayed)
+  await channel.assertQueue(RETRY_QUEUE, {
+    durable: true,
+    arguments: {
+      "x-message-ttl": 5000,
+      "x-dead-letter-exchange": "",
+      "x-dead-letter-routing-key": MAIN_QUEUE
+    }
+  });
+
+  // Main Queue
+  await channel.assertQueue(MAIN_QUEUE, {
+    durable: true,
+    arguments: {
+      "x-dead-letter-exchange": "",
+      "x-dead-letter-routing-key": RETRY_QUEUE
+    }
+  });
+
+  console.log("RabbitMQ queues ready (Retry + DLQ)");
 
   return channel;
 };
 
 const publishToQueue = async (data) => {
   const ch = await connectQueue();
+
   ch.sendToQueue(
-    QUEUE_NAME,
+    MAIN_QUEUE,
     Buffer.from(JSON.stringify(data)),
     { persistent: true }
   );
 };
 
-module.exports = { publishToQueue };
+// module.exports = { connectQueue };
+module.exports = {
+  connectQueue,
+  publishToQueue
+};
+

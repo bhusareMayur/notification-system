@@ -1,6 +1,8 @@
+//src/controllers/notification.controller.js
+
 const db = require("../db/mysql");
-const { sendEmailAsync } = require("../services/email.service");
 const { publishToQueue } = require("../queue/rabbitmq");
+
 const createNotification = (req, res) => {
   const { email, name, type, template } = req.body;
 
@@ -14,27 +16,26 @@ const createNotification = (req, res) => {
   db.query(
     query,
     [email, name, type, template, "PENDING"],
-    async (err, result) => {
+    (err, result) => {
       if (err) {
         return res.status(500).json({ message: "DB error" });
       }
 
       const notificationId = result.insertId;
 
-      // NON-BLOCKING email sending
-      // setImmediate(() => {
-      //   sendEmailAsync(notificationId, email, name);
-      // });
-
-        await publishToQueue({
+      // ✅ FIRE-AND-FORGET (NO await)
+      publishToQueue({
         notificationId,
         email,
         name
+      }).catch((err) => {
+        console.error("Queue publish failed:", err.message);
       });
 
+      // ✅ Respond immediately
       return res.status(202).json({
         status: "ACCEPTED",
-        notificationId: notificationId
+        notificationId
       });
     }
   );
