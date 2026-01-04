@@ -4,7 +4,7 @@ const nodemailer = require("nodemailer");
 const mysql = require("mysql2/promise");
 require("dotenv").config();
 
-// ✅ Create MySQL promise pool (safe for async/await)
+// Create MySQL promise pool (safe for async/await)
 const db = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
@@ -15,7 +15,7 @@ const db = mysql.createPool({
   queueLimit: 0
 });
 
-// ✅ Nodemailer transporter
+// Nodemailer transporter
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
   port: Number(process.env.EMAIL_PORT),
@@ -28,7 +28,20 @@ const transporter = nodemailer.createTransport({
 
 const sendEmailAsync = async (id, email, name) => {
   try {
-    // 1️⃣ Send email
+    // IDEMPOTENCY CHECK (Consumer Side)
+    // Check if this notification was already successfully sent.
+    // This protects against "At-Least-Once" delivery where RabbitMQ might redeliver a message.
+    const [rows] = await db.execute(
+      "SELECT status FROM notifications WHERE id = ?", 
+      [id]
+    );
+
+    if (rows.length > 0 && rows[0].status === "SENT") {
+      console.log(`[Idempotency] Notification ${id} already SENT. Skipping.`);
+      return true; // We return 'true' to tell the worker "Job done, acknowledge the message"
+    }
+
+    // Send email
     await transporter.sendMail({
       from: `Notification System <${process.env.EMAIL_USER}>`,
       to: email,
@@ -36,7 +49,7 @@ const sendEmailAsync = async (id, email, name) => {
       text: `Hello ${name}, welcome to our platform`
     });
 
-    // 2️⃣ Update DB on success
+    // Update DB on success
     await db.execute(
       "UPDATE notifications SET status = ? WHERE id = ?",
       ["SENT", id]
@@ -44,13 +57,13 @@ const sendEmailAsync = async (id, email, name) => {
 
     return true;
   } catch (err) {
-    // 3️⃣ Update DB on failure
+    // Update DB on failure
     await db.execute(
       "UPDATE notifications SET status = ? WHERE id = ?",
       ["FAILED", id]
     );
 
-    // 🔥 REQUIRED: let worker retry logic handle it
+    // REQUIRED: let worker retry logic handle it
     throw err;
   }
 };

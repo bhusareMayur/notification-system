@@ -3,22 +3,46 @@
 const db = require("../db/mysql");
 const { publishToQueue } = require("../queue/rabbitmq");
 
-// 1. Create Notification (Existing)
+// 1. Create Notification (With Idempotency)
 const createNotification = (req, res) => {
-  const { email, name, type, template } = req.body;
+  // 1. Get idempotencyKey from body
+  const { email, name, type, template, idempotencyKey } = req.body;
 
   if (!email || !type) {
     return res.status(400).json({ message: "Invalid request" });
   }
 
+  // 2. Insert idempotency_key into DB
   const query =
-    "INSERT INTO notifications (email, name, type, template, status) VALUES (?, ?, ?, ?, ?)";
+    "INSERT INTO notifications (email, name, type, template, status, idempotency_key) VALUES (?, ?, ?, ?, ?, ?)";
 
   db.query(
     query,
-    [email, name, type, template, "PENDING"],
+    // Pass 'idempotencyKey' (or null if the user didn't send one)
+    [email, name, type, template, "PENDING", idempotencyKey || null],
     (err, result) => {
       if (err) {
+        // IDEMPOTENCY CHECK (Producer Side)
+        // If MySQL complains about a duplicate entry (code 1062 / ER_DUP_ENTRY)
+        if (err.code === "ER_DUP_ENTRY") {
+          console.log(`[Idempotency] Duplicate request blocked: ${idempotencyKey}`);
+          
+          // Fetch the ORIGINAL notification to return to the user
+          const findQuery = "SELECT id, status FROM notifications WHERE idempotency_key = ?";
+          db.query(findQuery, [idempotencyKey], (findErr, findResult) => {
+            if (findErr) return res.status(500).json({ message: "DB Error fetching duplicate" });
+            
+            // Return 200 OK (not 202 Accepted) because we aren't creating anything new
+            return res.status(200).json({
+              status: "ALREADY_PROCESSED",
+              notificationId: findResult[0].id,
+              currentStatus: findResult[0].status
+            });
+          });
+          return; // Stop execution here
+        }
+
+        console.error("DB Insert Error:", err);
         return res.status(500).json({ message: "DB error" });
       }
 
@@ -41,7 +65,7 @@ const createNotification = (req, res) => {
   );
 };
 
-// 2. Retry Notification (New)
+// 2. Retry Notification (Existing Logic)
 const retryNotification = (req, res) => {
   const { id } = req.params;
 
