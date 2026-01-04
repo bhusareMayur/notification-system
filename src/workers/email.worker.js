@@ -1,10 +1,11 @@
 // src/workers/email.worker.js
 
 require("dotenv").config();
-const amqp = require("amqplib");
+const { connectQueue } = require("../queue/rabbitmq");
 const { sendEmailAsync } = require("../services/email.service");
 
 const MAIN_QUEUE = "notifications";
+const DLQ_QUEUE = "notifications.dlq"; // ✅ Define the explicit DLQ name
 const MAX_RETRIES = 3;
 
 const getRetryCount = (msg) => {
@@ -14,11 +15,9 @@ const getRetryCount = (msg) => {
 };
 
 const startWorker = async () => {
-  const connection = await amqp.connect(process.env.RABBITMQ_URL);
-  const channel = await connection.createChannel();
+  const channel = await connectQueue();
 
   channel.prefetch(1);
-  await channel.assertQueue(MAIN_QUEUE, { durable: true });
 
   console.log("Email worker running (Retry + DLQ)");
 
@@ -40,10 +39,17 @@ const startWorker = async () => {
       console.log(`Retry attempt ${retryCount + 1}`);
 
       if (retryCount >= MAX_RETRIES) {
-        // Send to DLQ
-        channel.reject(msg, false);
+        // ✅ FIX: Manually send to final DLQ.
+        // Calling reject() here would send it back to 'notifications.retry' (infinite loop)
+        console.log("Max retries reached. Moving to DLQ.");
+        
+        channel.sendToQueue(DLQ_QUEUE, msg.content, { persistent: true });
+        
+        // ✅ ACK the message to remove it from the main queue cycle
+        channel.ack(msg);
       } else {
         // Retry via TTL + DLX
+        // This relies on the queue's DLX setting to move it to 'notifications.retry'
         channel.nack(msg, false, false);
       }
     }
