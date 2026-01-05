@@ -16,7 +16,7 @@ const startWorker = async () => {
 
     // 🛑 FILTER: Only process PUSH
     if (data.channel !== 'PUSH') {
-      return channel.nack(msg, false, true);
+      return channel.sendToQueue(MAIN_QUEUE, msg.content, { persistent: true });
     }
 
     try {
