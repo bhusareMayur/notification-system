@@ -19,19 +19,19 @@ The system supports **Email, SMS, and Push notifications** with built-in reliabi
 
 ---
 
-## 🏗️ System Architecture (High Level)
+## 🗃️ System Architecture (High Level)
 
+```
 Client
-↓
+  ↓
 Notification API
-↓
+  ↓
 RabbitMQ (notifications queue)
-↓
+  ↓
 Email Worker | SMS Worker | Push Worker
-
-↓
+  ↓
 Database (Status Tracking)
-
+```
 
 ---
 
@@ -103,27 +103,31 @@ Database (Status Tracking)
 ## 🧪 Running Locally
 
 ### Prerequisites
+
 - Node.js
 - Docker
 - RabbitMQ
 
-# -------------------------------
-# Start RabbitMQ (Docker)
-# -------------------------------
+### Start RabbitMQ (Docker)
+
+```bash
 docker run -d \
   --name rabbitmq \
   -p 5672:5672 \
   -p 15672:15672 \
   rabbitmq:3-management
+```
 
-# -------------------------------
-# Start Notification API
-# -------------------------------
+### Start Notification API
+
+```bash
 node src/server.js
+```
 
-# -------------------------------
-# Start Workers
-# -------------------------------
+### Start Workers
+
+```bash
 node src/workers/email.worker.js
 node src/workers/sms.worker.js
 node src/workers/push.worker.js
+```
