@@ -95,7 +95,7 @@ Database (Status Tracking)
 
 ## 📈 Scale (Tested)
 
-- Handled **1k+ notifications/day** during testing
+- Handled **500+ notifications/day** during testing
 - Architecture supports higher throughput with more workers
 
 ---
