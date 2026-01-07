@@ -36,7 +36,7 @@ window.requestToken = async () => {
             const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
             
             const token = await getToken(messaging, { 
-                vapidKey: 'BGqBPFVVxG2VFgMjfaqkImXIp5lysl-BKkgSEOSd5OdeIenut9ZH3ksgYoJEUAfEViFWUjncLWrENarnr0N2khU',
+                vapidKey: 'process.env.VAPIKEY',
                 serviceWorkerRegistration: registration // Pass the registration here
             });
             
