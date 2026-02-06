@@ -42,7 +42,10 @@ Database (Status Tracking)
 - **Database:** MySQL  
 - **Infra:** Docker  
 - **Email:** Nodemailer  
-- **Logging:** Console / Structured logs  
+- **SMS:** Twilio  
+- **Push:** Firebase Cloud Messaging (FCM)  
+- **Testing:** Postman, k6  
+- **Logging:** Structured console logs  
 
 ---
 
@@ -93,10 +96,17 @@ Database (Status Tracking)
 
 ---
 
-## 📈 Scale (Tested)
+## 📈 Scale & Load Testing
 
-- Handled **500+ notifications/day** during testing
-- Architecture supports higher throughput with more workers
+- Load tested with **10,000+ concurrent API requests** using **k6**
+- Requests were accepted without API crashes or data loss
+- Messages were queued reliably in RabbitMQ under burst traffic
+- Workers processed messages asynchronously without blocking the API
+- Notification states remained consistent in MySQL (`PENDING → SENT / FAILED`)
+- Queue depth, delivery rate, and retries were verified via RabbitMQ dashboard
+
+> Note: Tests were performed in a controlled local environment to validate system behavior under load.
+
 
 ---
 
