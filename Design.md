@@ -22,16 +22,43 @@ The system follows an **Asynchronous Worker–Queue Model**, decoupling **reques
 ### High-Level Flow
 
 ```text
-[ Client ]
-    ↓ (HTTP POST + Idempotency Key)
-[ Express API ] ──────→ [ MySQL (Persistence Layer) ]
-    ↓ (Publish)
-[ RabbitMQ (Broker) ] ──→ [ Dead Letter Queue (Manual / Replay) ]
-    ↓ (Consume)
-[ Channel Workers ] ──→ [ External APIs (Twilio, FCM, SMTP) ]
-    ↓ (Update)
-[ MySQL (Final Status) ]
-```
+                 ┌──────────────────────────┐
+                 │        Client            │
+                 └────────────┬─────────────┘
+                              │ HTTP POST + Idempotency Key
+                              ▼
+                 ┌──────────────────────────┐
+                 │       Express API        │
+                 └───────┬─────────┬────────┘
+                         │         │
+                         │         └── Persist (PENDING)
+                         │              ▼
+                         │        ┌──────────────┐
+                         │        │   MySQL DB   │
+                         │        └──────────────┘
+                         │
+                         └── Publish Message
+                              ▼
+                     ┌────────────────┐
+                     │   RabbitMQ     │
+                     └───────┬────────┘
+                             │ Consume
+                             ▼
+                 ┌──────────────────────────┐
+                 │     Channel Workers      │
+                 └──────────┬───────────────┘
+                            │
+                            ▼
+                 ┌──────────────────────────┐
+                 │  External Providers      │
+                 │ (Twilio / FCM / SMTP)    │
+                 └──────────┬───────────────┘
+                            │ Update Status
+                            ▼
+                       ┌──────────────┐
+                       │   MySQL DB   │
+                       └──────────────┘
+
 
 ## Component Breakdown
 
