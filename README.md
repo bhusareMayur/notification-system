@@ -141,3 +141,5 @@ node src/workers/email.worker.js
 node src/workers/sms.worker.js
 node src/workers/push.worker.js
 ```
+## Documentation
+- [Architecture & Design Document](./DESIGN.md)
