@@ -141,5 +141,28 @@ node src/workers/email.worker.js
 node src/workers/sms.worker.js
 node src/workers/push.worker.js
 ```
+
+---
+
+## Proof of Execution & Testing
+
+This section contains real execution outputs and validation evidence from the system.
+
+### Load Testing (k6)
+- Successfully handled 10,000 burst requests with no observed failures.
+- Evidence:
+  ![Load Test Result](./assets/K6_Terminal.jpeg)
+
+### Queue Processing
+- RabbitMQ message flow and worker consumption.
+  ![Queue Status](./assets/10K+_Production.png)
+
+### API Execution
+- Successful notification creation and status updates.
+  ![API Execution](./assets/postman_email.png)
+
+> All screenshots are taken from actual test runs and local deployments.
+
+
 ## Documentation
 - [Architecture & Design Document](./Design.md)
