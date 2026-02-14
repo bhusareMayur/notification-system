@@ -1,4 +1,5 @@
-# 🚀 DESIGN.md — Scalable Multi-Channel Notification System
+#  Scalable Multi-Channel Notification System - Architecture & Design Document
+
 
 ---
 
