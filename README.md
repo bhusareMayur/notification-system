@@ -142,4 +142,4 @@ node src/workers/sms.worker.js
 node src/workers/push.worker.js
 ```
 ## Documentation
-- [Architecture & Design Document](./DESIGN.md)
+- [Architecture & Design Document](./Design.md)
