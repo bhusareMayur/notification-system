@@ -58,7 +58,7 @@ The system follows an **Asynchronous Worker–Queue Model**, decoupling **reques
                        ┌──────────────┐
                        │   MySQL DB   │
                        └──────────────┘
-
+```
 
 ## Component Breakdown
 
