@@ -17,7 +17,7 @@ const startWorker = async () => {
 
     const data = JSON.parse(msg.content.toString());
 
-    // 🛑 FILTER: If this is NOT an email, ignore it (Requeue for other workers)
+    //  FILTER: If this is NOT an email, ignore it (Requeue for other workers)
     if (data.channel !== 'EMAIL') {
       // nack(message, allUpTo=false, requeue=true)
       return channel.nack(msg, false, true);
