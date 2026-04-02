@@ -9,6 +9,7 @@ The system supports **Email, SMS, and Push notifications** with built-in reliabi
 
 - Asynchronous notification processing using **RabbitMQ**
 - Supports multiple channels: **Email, SMS, Push**
+- **Interactive API Documentation** via Swagger UI
 - **Retry mechanism** with configurable attempts
 - **Dead Letter Queue (DLQ)** for failed messages
 - **Idempotent consumers** to prevent duplicate delivery
@@ -21,10 +22,10 @@ The system supports **Email, SMS, and Push notifications** with built-in reliabi
 
 ## 🗃️ System Architecture (High Level)
 
-```
+```text
 Client
   ↓
-Notification API
+Notification API (Swagger Documented)
   ↓
 RabbitMQ (notifications queue)
   ↓
@@ -37,15 +38,16 @@ Database (Status Tracking)
 
 ## 🧰 Tech Stack
 
-- **Backend:** Node.js, Express.js  
-- **Messaging:** RabbitMQ  
-- **Database:** MySQL  
-- **Infra:** Docker  
-- **Email:** Nodemailer  
-- **SMS:** Twilio  
-- **Push:** Firebase Cloud Messaging (FCM)  
-- **Testing:** Postman, k6  
-- **Logging:** Structured console logs  
+- **Backend:** Node.js, Express.js
+- **Messaging:** RabbitMQ
+- **Database:** MySQL
+- **Infra:** Docker
+- **Email:** Nodemailer
+- **SMS:** Twilio
+- **Push:** Firebase Cloud Messaging (FCM)
+- **API Documentation:** Swagger UI (OpenAPI 3.0)
+- **Testing:** Postman, k6
+- **Logging:** Structured console logs
 
 ---
 
@@ -58,6 +60,16 @@ Database (Status Tracking)
 5. On failure → retry queue
 6. After max retries → Dead Letter Queue (DLQ)
 7. Manual replay from DLQ supported
+
+---
+
+## 📖 API Documentation
+
+The API is fully documented using **Swagger / OpenAPI 3.0**.
+
+Once the server is running, you can explore the endpoints, view request/response schemas, and test the API directly from your browser by navigating to:
+
+**[`http://localhost:8080/api-docs`](http://localhost:8080/api-docs)**
 
 ---
 
@@ -107,7 +119,6 @@ Database (Status Tracking)
 
 > Note: Tests were performed in a controlled local environment to validate system behavior under load.
 
-
 ---
 
 ## 🧪 Running Locally
@@ -134,6 +145,8 @@ docker run -d \
 node src/server.js
 ```
 
+*Access the API Documentation at: `http://localhost:8080/api-docs`*
+
 ### Start Workers
 
 ```bash
@@ -149,20 +162,22 @@ node src/workers/push.worker.js
 This section contains real execution outputs and validation evidence from the system.
 
 ### Load Testing (k6)
+
 - Successfully handled 10,000 burst requests with no observed failures.
 - Evidence:
-  ![Load Test Result](./assets/K6_Terminal.jpeg)
 
 ### Queue Processing
+
 - RabbitMQ message flow and worker consumption.
-  ![Queue Status](./assets/10K+_Production.png)
 
 ### API Execution
+
 - Successful notification creation and status updates.
-  ![API Execution](./assets/postman_email.png)
 
 > All screenshots are taken from actual test runs and local deployments.
 
+---
 
 ## Documentation
+
 - [Architecture & Design Document](./Design.md)
